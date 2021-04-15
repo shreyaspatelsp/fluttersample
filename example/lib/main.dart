@@ -1,76 +1,70 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import 'package:flutter/services.dart';
-import 'package:flutter_plugin/flutter_plugin.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(debugShowCheckedModeBanner: false,
+      title: 'Get Request',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: HomePage(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  String greetings ='';
+class HomePage extends StatefulWidget {
   @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
+  _HomePageState createState() => _HomePageState();
+}
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await FlutterPlugin.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
+class _HomePageState extends State<HomePage> {
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
+  String predictions = '';
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Container(
-            width : 158,
-            height : 68,
-            child : FlatButton(
-              onPressed: () async{
+    return Scaffold(
+      body: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(predictions, //Text that will be displayed on the screen
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Center(
+              child: Container( //container that contains the button
+                width: 150,
+                height: 60,
+                child: FlatButton(
+                  color: Colors.blue,
+                  onPressed: () async { //async function to perform http get
 
-                final response = await http.get('http://127.0.0.1:5000/');
-                final decoded = json.decode(response.body) as Map<String, dynamic>;
-                setState(() {
-                greetings = decoded['greetings'];
-                });
-                },
-              child: Text(
-                'Press',
-                style: TextStyle(fontSize: 24,),
-            )
-      )
+                    final response = await http.get(Uri.parse('http://127.0.0.1:5000/')); //getting the response from our backend server script
+
+                    final decoded = json.decode(response.body) as Map<String, dynamic>; //converting it from json to key value pair
+
+                    setState(() {
+                      predictions = decoded['predictions']; //changing the state of our widget on data update
+                    });
+
+                  },
+                  child: Text(
+                    'Press',
+                    style: TextStyle(fontSize: 24,),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-    ));
+    );
   }
 }
